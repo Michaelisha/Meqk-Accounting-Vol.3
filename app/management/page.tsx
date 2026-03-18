@@ -23,64 +23,60 @@ import {
 } from 'recharts';
 
 export default function ManagementDashboard() {
-  const { company } = useAuth();
   const [stats, setStats] = useState({
-    totalBuses: 0,
+    totalBusesToday: 0,
     pendingAmount: 0,
     totalIncome: 0,
     totalExpenses: 0,
+    totalStaff: 0,
+    totalBuses: 0,
+    numberOfSpares: 0,
   });
-  const [topBuses, setTopBuses] = useState<any[]>([]);
-  const [topStaffShortage, setTopStaffShortage] = useState<any[]>([]);
+  const [topShortages, setTopShortages] = useState<any[]>([]);
+  const [topPerformingBuses, setTopPerformingBuses] = useState<any[]>([]);
+  const [mostDieselUser, setMostDieselUser] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!company) return;
-
     const fetchStats = async () => {
       setLoading(true);
       
-      // Total buses today
-      const { data: dailyBuses } = await supabase
-        .from('daily_buses_view')
-        .select('*')
-        .eq('company', company.uuid);
-      
-      // Total pending amount
-      const { data: invoiceReport } = await supabase
-        .from('invoice_report')
-        .select('amount')
-        .eq('company', company.uuid)
-        .eq('status', 'pending');
-
-      // Income & Expenses
-      const { data: incomeStatement } = await supabase
-        .from('income_statement')
-        .select('*')
-        .eq('company', company.uuid);
-
-      // Top Staff Shortage
-      const { data: staffShortage } = await supabase
-        .from('staff_statement')
-        .select('*')
-        .eq('company', company.uuid)
-        .order('shortage', { ascending: false })
-        .limit(3);
+      const [
+        { data: metrics },
+        { count: staffCount },
+        { count: busCount },
+        { count: spareCount },
+        { data: shortages },
+        { data: busIncome },
+        { data: dieselUsage }
+      ] = await Promise.all([
+        supabase.from('management_dashboard_metrics').select('*').single(),
+        supabase.from('staff_list').select('*', { count: 'exact', head: true }),
+        supabase.from('bus_list').select('*', { count: 'exact', head: true }),
+        supabase.from('spare_list').select('*', { count: 'exact', head: true }),
+        supabase.from('top_3_staff_shortage').select('*'),
+        supabase.from('top_3_bus_income').select('*'),
+        supabase.from('top_3_diesel_usage').select('*')
+      ]);
 
       setStats({
-        totalBuses: dailyBuses?.length || 0,
-        pendingAmount: invoiceReport?.reduce((acc, curr) => acc + curr.amount, 0) || 0,
-        totalIncome: incomeStatement?.filter(i => i.type === 'income').reduce((acc, curr) => acc + curr.amount, 0) || 0,
-        totalExpenses: incomeStatement?.filter(i => i.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0) || 0,
+        totalBusesToday: metrics?.total_buses_today || 0,
+        pendingAmount: metrics?.total_pending_amount || 0,
+        totalIncome: metrics?.total_income || 0,
+        totalExpenses: metrics?.total_expenses || 0,
+        totalStaff: staffCount || 0,
+        totalBuses: busCount || 0,
+        numberOfSpares: spareCount || 0,
       });
 
-      setTopBuses(dailyBuses?.sort((a, b) => b.passengers - a.passengers).slice(0, 3) || []);
-      setTopStaffShortage(staffShortage || []);
+      setTopShortages(shortages || []);
+      setTopPerformingBuses(busIncome || []);
+      setMostDieselUser(dieselUsage || []);
       setLoading(false);
     };
 
     fetchStats();
-  }, [company]);
+  }, []);
 
   return (
     <DepartmentLayout 
@@ -90,84 +86,111 @@ export default function ManagementDashboard() {
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
-          title="Total Buses Today" 
-          value={stats.totalBuses} 
+          title="Buses Travel Today" 
+          value={stats.totalBusesToday} 
           icon={Bus} 
           color="text-yellow-600"
           bg="bg-yellow-50"
         />
         <StatCard 
-          title="Pending Amount" 
-          value={`$${stats.pendingAmount.toLocaleString()}`} 
+          title="Total Pending" 
+          value={`TZS ${stats.pendingAmount.toLocaleString()}`} 
           icon={FileText} 
           color="text-blue-600"
           bg="bg-blue-50"
         />
         <StatCard 
           title="Total Income" 
-          value={`$${stats.totalIncome.toLocaleString()}`} 
+          value={`TZS ${stats.totalIncome.toLocaleString()}`} 
           icon={TrendingUp} 
           color="text-green-600"
           bg="bg-green-50"
         />
         <StatCard 
           title="Total Expenses" 
-          value={`$${stats.totalExpenses.toLocaleString()}`} 
+          value={`TZS ${stats.totalExpenses.toLocaleString()}`} 
           icon={TrendingDown} 
           color="text-red-600"
           bg="bg-red-50"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Buses Chart */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <Bus className="w-5 h-5 text-yellow-500" />
-            Top 3 Buses (Passengers)
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-orange-50 text-orange-600">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Total Staff</p>
+            <h4 className="text-xl font-black text-slate-900">{stats.totalStaff}</h4>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-blue-50 text-blue-600">
+            <Bus className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Total Buses</p>
+            <h4 className="text-xl font-black text-slate-900">{stats.totalBuses}</h4>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-purple-50 text-purple-600">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Number of Spares</p>
+            <h4 className="text-xl font-black text-slate-900">{stats.numberOfSpares}</h4>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Top Shortages */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+          <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
+            <TrendingDown className="w-5 h-5 text-red-500" />
+            Top Shortages
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topBuses}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="bus_number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Bar dataKey="passengers" fill="#eab308" radius={[6, 6, 0, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="space-y-4">
+            {topShortages.map((item, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="font-bold text-slate-900">{item.staff}</p>
+                <p className="text-red-600 font-black italic">TZS {item.shortage.toLocaleString()}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Top Staff Shortage */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <Users className="w-5 h-5 text-red-500" />
-            Top 3 Staff Shortages
+        {/* Top Performing Buses */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+          <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            Top Performing Buses
           </h3>
           <div className="space-y-4">
-            {topStaffShortage.map((staff, i) => (
+            {topPerformingBuses.map((item, i) => (
               <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 font-bold">
-                    {staff.staff_name?.[0]}
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900">{staff.staff_name}</p>
-                    <p className="text-xs text-slate-500">Employee ID: {staff.staff_id}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-red-600 font-bold">${staff.shortage.toLocaleString()}</p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">Shortage Amount</p>
-                </div>
+                <p className="font-bold text-slate-900">{item.bus}</p>
+                <p className="text-green-600 font-black italic">TZS {item.total_income.toLocaleString()}</p>
               </div>
             ))}
-            {topStaffShortage.length === 0 && (
-              <div className="text-center py-12 text-slate-400 italic">No shortage data available</div>
-            )}
+          </div>
+        </div>
+
+        {/* Most Diesel User */}
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+          <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
+            <Bus className="w-5 h-5 text-blue-500" />
+            Most Diesel User
+          </h3>
+          <div className="space-y-4">
+            {mostDieselUser.map((item, i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="font-bold text-slate-900">{item.bus}</p>
+                <p className="text-blue-600 font-black italic">{item.total_diesel_used.toLocaleString()} L</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
