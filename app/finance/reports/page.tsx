@@ -138,7 +138,7 @@ export default function FinanceReports() {
         body: rows,
         startY: 25,
         styles: { fontSize: 8 },
-        headStyles: { fillStyle: 'DFDFDF', textColor: 0 }
+        headStyles: { fillColor: [223, 223, 223], textColor: 0 }
       });
     }
     
