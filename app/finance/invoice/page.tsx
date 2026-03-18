@@ -6,10 +6,13 @@ import {
   Save,
   Loader2,
   Plus,
-  Trash2
+  Trash2,
+  Upload,
+  FileSpreadsheet
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import * as XLSX from 'xlsx';
 
 export default function AddInvoicePage() {
   const [loading, setLoading] = useState(false);
@@ -17,6 +20,7 @@ export default function AddInvoicePage() {
   const [staff, setStaff] = useState<any[]>([]);
   const [buses, setBuses] = useState<any[]>([]);
   const [routes, setRoutes] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [lines, setLines] = useState([
     { date: new Date().toISOString().split('T')[0], invoice_type: '', staff: '', bus: '', route: '', amount: 0 }
@@ -43,6 +47,97 @@ export default function AddInvoicePage() {
     };
     fetchData();
   }, []);
+
+  const excelDateToJSDate = (serial: any) => {
+    if (!serial) return null;
+    if (typeof serial === "string") return serial;
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date = new Date(utc_value * 1000);
+    return date.toISOString().split("T")[0];
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        setLoading(true);
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const excelRows = XLSX.utils.sheet_to_json(worksheet);
+
+        console.log("RAW:", excelRows);
+
+        const [staffsRes, busesRes, routesRes, invoiceTypesRes] = await Promise.all([
+          supabase.from("staffs").select("uuid,name"),
+          supabase.from("buses").select("uuid,reg"),
+          supabase.from("routes").select("uuid,route"),
+          supabase.from("invoice_types").select("uuid,invoice_type"),
+        ]);
+
+        const staffs = staffsRes.data || [];
+        const buses = busesRes.data || [];
+        const routes = routesRes.data || [];
+        const invoiceTypes = invoiceTypesRes.data || [];
+
+        let mappedData = [];
+        try {
+          mappedData = excelRows.map((row: any) => ({
+            date: excelDateToJSDate(row.date),
+            invoice_type: invoiceTypes.find(i => i.invoice_type === row.invoice_type)?.uuid || null,
+            staff: staffs.find(s => s.name === row.staff)?.uuid || null,
+            bus: buses.find(b => b.reg === row.bus)?.uuid || null,
+            route: routes.find(r => r.route === row.route)?.uuid || null,
+            amount: Number(row.amount || 0),
+          }));
+        } catch (err) {
+          console.error("Mapping error:", err);
+          alert("Error processing Excel file.");
+          return;
+        }
+
+        console.log("MAPPED:", mappedData);
+
+        const cleanData = mappedData.filter((row: any) =>
+          row.date &&
+          row.invoice_type &&
+          row.staff &&
+          row.bus &&
+          row.route &&
+          row.amount > 0
+        );
+
+        console.log("CLEAN:", cleanData);
+
+        if (cleanData.length === 0) {
+          alert("No valid data found. Check Excel names and format.");
+          return;
+        }
+
+        const { error } = await supabase.from("invoice_entry").insert(cleanData);
+
+        if (error) {
+          console.error(error);
+          alert("Error saving data.");
+          return;
+        }
+
+        alert("Excel uploaded successfully!");
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } catch (err) {
+        console.error(err);
+        alert("Unexpected error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
 
   const addLine = () => {
     setLines([...lines, { 
@@ -111,13 +206,29 @@ export default function AddInvoicePage() {
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-black text-slate-900 italic">Invoice Lines</h3>
-              <button 
-                type="button"
-                onClick={addLine}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20"
-              >
-                <Plus className="w-4 h-4" /> Add Line
-              </button>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept=".xlsx, .xls, .csv"
+                  className="hidden"
+                />
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2.5 rounded-xl font-bold hover:bg-slate-200 transition-all text-xs"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-green-600" /> Upload Excel
+                </button>
+                <button 
+                  type="button"
+                  onClick={addLine}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20"
+                >
+                  <Plus className="w-4 h-4" /> Add Line
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
