@@ -129,7 +129,7 @@ export default function AddDailyBusPage() {
                 required
               >
                 <option value="">Select Bus</option>
-                {buses.map(b => <option key={b.uuid} value={b.uuid}>{b.bus}</option>)}
+                {buses.map(b => <option key={b.uuid} value={b.uuid}>{b.reg}</option>)}
               </select>
             </div>
 
@@ -159,7 +159,7 @@ export default function AddDailyBusPage() {
                 required
               >
                 <option value="">Select Driver</option>
-                {staff.map(s => <option key={s.uuid} value={s.uuid}>{s.staff}</option>)}
+                {staff.map(s => <option key={s.uuid} value={s.uuid}>{s.name}</option>)}
               </select>
             </div>
 
@@ -174,7 +174,7 @@ export default function AddDailyBusPage() {
                 required
               >
                 <option value="">Select Conductor</option>
-                {staff.map(s => <option key={s.uuid} value={s.uuid}>{s.staff}</option>)}
+                {staff.map(s => <option key={s.uuid} value={s.uuid}>{s.name}</option>)}
               </select>
             </div>
 
