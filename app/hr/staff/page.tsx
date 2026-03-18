@@ -39,16 +39,14 @@ export default function AddStaffPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!company) return;
 
     setLoading(true);
     try {
       const { error } = await supabase.from('staffs').insert({
-        company: company.uuid,
         name: formData.name,
         occupation: formData.occupation,
         office: formData.office
-      });
+      }).select();
 
       if (error) throw error;
 
