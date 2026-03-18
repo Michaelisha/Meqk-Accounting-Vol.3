@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Remove numeric input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+body {
+  font-style: italic;
+  @apply bg-slate-50 text-slate-900;
+}
+
+.golden-theme {
+  --primary: #d4af37;
+  --primary-foreground: #ffffff;
+}
+
+.finance-theme {
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+}
+
+.operations-theme {
+  --primary: #22c55e;
+  --primary-foreground: #ffffff;
+}
+
+.hr-theme {
+  --primary: #f97316;
+  --primary-foreground: #ffffff;
+}
+
+.fleet-theme {
+  --primary: #a855f7;
+  --primary-foreground: #ffffff;
+}
