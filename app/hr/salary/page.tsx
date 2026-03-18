@@ -51,19 +51,17 @@ export default function SalaryEntryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!company) return;
 
     setLoading(true);
     try {
       const { error } = await supabase.from('salary_entry').insert({
-        company: company.uuid,
         date: formData.date,
-        month_of: formData.month_of,
-        staff: formData.staff,
-        account: formData.account,
-        category: formData.category,
-        amount: formData.amount
-      });
+        month_of: formData.month_of || null,
+        staff: formData.staff || null,
+        account: formData.account || null,
+        category: formData.category || null,
+        amount: Number(formData.amount)
+      }).select();
 
       if (error) throw error;
 
