@@ -58,7 +58,7 @@ const departments = [
 export default function DepartmentSelector() {
   const { company, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return <div className="text-center mt-10">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center justify-center">
