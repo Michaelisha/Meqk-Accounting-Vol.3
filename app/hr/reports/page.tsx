@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import DepartmentLayout from '@/components/department-layout';
 import GenericReports from '@/components/generic-reports';
 import { HR_NAVIGATION } from '@/constants/navigation';
-import { supabase } from '@/lib/supabase';
-import { Loader2 } from 'lucide-react';
 
 const TABS = [
   { id: 'staff', label: 'Staff List', view: 'staff_list' },
@@ -15,28 +13,6 @@ const TABS = [
 
 export default function HRReports() {
   const [activeTab, setActiveTab] = useState(TABS[0]);
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any[]>([]);
-
-  const fetchReportData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data: reportData, error } = await supabase
-        .from(activeTab.view)
-        .select('*');
-      
-      if (error) throw error;
-      setData(reportData || []);
-    } catch (error) {
-      console.error('Error fetching report:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    fetchReportData();
-  }, [fetchReportData]);
 
   return (
     <DepartmentLayout theme="hr" title="HR Reports" navigation={HR_NAVIGATION}>
@@ -58,41 +34,10 @@ export default function HRReports() {
           ))}
         </div>
 
-        <GenericReports title={activeTab.label}>
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="p-20 text-center text-slate-400 italic">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-                Loading {activeTab.label}...
-              </div>
-            ) : data.length === 0 ? (
-              <div className="p-20 text-center text-slate-400 italic">No records found</div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    {Object.keys(data[0]).map((header) => (
-                      <th key={header} className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
-                        {header.replace(/_/g, ' ')}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {data.map((row, i) => (
-                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                      {Object.values(row).map((val: any, j) => (
-                        <td key={j} className="px-6 py-4 text-sm font-bold text-slate-600 italic whitespace-nowrap">
-                          {typeof val === 'number' && !String(val).includes('-') && val > 1000 ? val.toLocaleString() : String(val || '-')}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </GenericReports>
+        <GenericReports 
+          viewName={activeTab.view} 
+          title={activeTab.label}
+        />
       </div>
     </DepartmentLayout>
   );
