@@ -28,6 +28,7 @@ export default function AddCashPage() {
       bus: '', 
       route: '', 
       account: '', 
+      reference: '',
       category: '', 
       amount: 0 
     }
@@ -69,6 +70,7 @@ export default function AddCashPage() {
       bus: '', 
       route: '', 
       account: '', 
+      reference: '',
       category: '', 
       amount: 0 
     }]);
@@ -100,6 +102,7 @@ export default function AddCashPage() {
         bus: line.bus || null,
         route: line.route || null,
         account: line.account || null,
+        reference: line.reference || null,
         category: line.category || null,
         amount: Number(line.amount)
       }));
@@ -115,6 +118,7 @@ export default function AddCashPage() {
         bus: '', 
         route: '', 
         account: '', 
+        reference: '',
         category: '', 
         amount: 0 
       }]);
@@ -153,6 +157,7 @@ export default function AddCashPage() {
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bus</th>
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Route</th>
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Account</th>
+                    <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Reference</th>
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</th>
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
                     <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest w-10"></th>
@@ -221,6 +226,15 @@ export default function AddCashPage() {
                           <option value="">Select Account</option>
                           {accounts.map(a => <option key={a.uuid} value={a.uuid}>{a.account}</option>)}
                         </select>
+                      </td>
+                      <td className="px-2 py-4">
+                        <input 
+                          type="text"
+                          value={line.reference}
+                          onChange={(e) => updateLine(index, 'reference', e.target.value)}
+                          className="w-[140px] max-w-[160px] px-2 py-1 bg-transparent border-none text-sm font-bold focus:ring-0 italic"
+                          placeholder="Ref..."
+                        />
                       </td>
                       <td className="px-2 py-4">
                         <select 
