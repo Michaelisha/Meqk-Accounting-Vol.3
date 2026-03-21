@@ -46,22 +46,23 @@ export default function GenericReports({ title, viewName, onDataChange }: Generi
 
       // Apply filters only if columns exist
       if (searchTerm && availableColumns.length > 0) {
-        // Specific columns requested by user + general text columns
         const targetCols = [
           'staff', 'bus', 'route', 'account', 'category', 
           'office', 'driver', 'reference', 'conductor', 'name', 
           'reg', 'bus_reg', 'account_name'
         ];
         
-        const textCols = availableColumns.filter(col => {
-          const isTarget = targetCols.includes(col.toLowerCase());
-          const isText = !col.toLowerCase().includes('uuid') && !col.toLowerCase().includes('_id');
-          return isTarget || isText;
+        const searchParts: string[] = [];
+        
+        // Add text columns that exist in the view
+        targetCols.forEach(col => {
+          if (availableColumns.includes(col)) {
+            searchParts.push(`${col}.ilike.%${searchTerm}%`);
+          }
         });
         
-        if (textCols.length > 0) {
-          const orFilter = textCols.map(col => `${col}.ilike.%${searchTerm}%`).join(',');
-          query = query.or(orFilter);
+        if (searchParts.length > 0) {
+          query = query.or(searchParts.join(','));
         }
       }
 
