@@ -60,8 +60,7 @@ export default function AddDailyBusPage() {
         driver: formData.driver || null,
         conductor: formData.conductor || null,
         enroute: Number(formData.enroute || 0),
-        oneway: Number(formData.oneway || 0),
-        total: Number(formData.enroute || 0) + Number(formData.oneway || 0)
+        oneway: Number(formData.oneway || 0)
       });
 
       if (error) throw error;
