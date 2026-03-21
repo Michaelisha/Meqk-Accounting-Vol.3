@@ -23,6 +23,7 @@ interface JournalLine {
   staff: string;
   bus: string;
   route: string;
+  reference: string;
   account: string;
   debit: number;
   credit: number;
@@ -46,6 +47,7 @@ export default function JournalPage() {
       staff: '',
       bus: '',
       route: '',
+      reference: '',
     };
     return [
       { ...common, id: Math.random().toString(36).substr(2, 9), account: '', debit: 0, credit: 0, isDebit: true },
@@ -95,7 +97,7 @@ export default function JournalPage() {
     // If it's a common field, update the pair? 
     // Usually journal entries share date/type/staff/bus/route/description for the same transaction
     const pairIndex = index % 2 === 0 ? index + 1 : index - 1;
-    const commonFields: (keyof JournalLine)[] = ['date', 'journal_type', 'staff', 'bus', 'route'];
+    const commonFields: (keyof JournalLine)[] = ['date', 'journal_type', 'staff', 'bus', 'route', 'reference'];
     
     if (commonFields.includes(field)) {
       newLines[pairIndex] = { ...newLines[pairIndex], [field]: value };
@@ -125,6 +127,7 @@ export default function JournalPage() {
         staff: line.staff || null,
         bus: line.bus || null,
         route: line.route || null,
+        reference: line.reference || null,
         account: line.account || null,
         debit_amount: Number(line.debit) || 0,
         credit_amount: Number(line.credit) || 0
@@ -161,6 +164,7 @@ export default function JournalPage() {
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Staff</th>
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Bus</th>
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Route</th>
+                      <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Reference</th>
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Account</th>
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Debit</th>
                       <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Credit</th>
@@ -219,6 +223,15 @@ export default function JournalPage() {
                             <option value="">Route</option>
                             {routes.map(r => <option key={r.uuid} value={r.uuid}>{r.route}</option>)}
                           </select>
+                        </td>
+                        <td className="p-2">
+                          <input 
+                            type="text"
+                            value={line.reference}
+                            onChange={(e) => updateLine(index, 'reference', e.target.value)}
+                            className="w-[140px] max-w-[160px] px-2 py-1 bg-transparent border-none text-xs font-bold focus:ring-0 italic"
+                            placeholder="Ref..."
+                          />
                         </td>
                         <td className="p-2">
                           <select 
