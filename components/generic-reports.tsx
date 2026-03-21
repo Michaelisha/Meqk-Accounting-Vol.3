@@ -46,9 +46,17 @@ export default function GenericReports({ title, viewName, onDataChange }: Generi
 
       // Apply filters only if columns exist
       if (searchTerm && availableColumns.length > 0) {
+        // Specific columns requested by user + general text columns
+        const targetCols = [
+          'staff', 'bus', 'route', 'account', 'category', 
+          'office', 'driver', 'reference', 'conductor', 'name', 
+          'reg', 'bus_reg', 'account_name'
+        ];
+        
         const textCols = availableColumns.filter(col => {
-          // Heuristic: columns that are likely text and not UUIDs
-          return !col.toLowerCase().includes('uuid') && !col.toLowerCase().includes('_id');
+          const isTarget = targetCols.includes(col.toLowerCase());
+          const isText = !col.toLowerCase().includes('uuid') && !col.toLowerCase().includes('_id');
+          return isTarget || isText;
         });
         
         if (textCols.length > 0) {
