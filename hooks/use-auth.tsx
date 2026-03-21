@@ -1,6 +1,3 @@
-'use client';
-
-import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
@@ -27,21 +24,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const setData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        // Fetch user's company
-        const { data: userData } = await supabase
-          .from('users')
-          .select('company, companies(*)')
-          .eq('uuid', session.user.id)
-          .single();
-        
-        if (userData) {
-          setCompany(userData.companies);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(session.user);
+          const { data: userData } = await supabase
+            .from('users')
+            .select('company, companies(*)')
+            .eq('uuid', session.user.id)
+            .single();
+          
+          if (userData) {
+            setCompany(userData.companies);
+          }
+        } else {
+          // If no session and not on login page, redirect
+          if (window.location.pathname !== '/login') {
+            router.push('/login');
+          }
         }
+      } catch (err) {
+        console.error('Auth check error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     setData();
@@ -63,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
