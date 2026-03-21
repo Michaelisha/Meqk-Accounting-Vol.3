@@ -15,6 +15,7 @@ const TABS = [
   { id: 'bus_income', label: 'Buses Income', view: 'bus_total_income' },
   { id: 'bus_perf', label: 'Bus Performance', view: 'bus_performance' },
   { id: 'acc_summary', label: 'Accounts Summary', view: 'trial_balance_summary' },
+  { id: 'collection', label: 'Collection Report', view: 'collection_report' },
 ];
 
 export default function FinanceReports() {
