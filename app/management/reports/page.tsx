@@ -18,6 +18,7 @@ const MODULES = [
       { id: 'staff_stmt', label: 'Staff Statement', view: 'staff_statement' },
       { id: 'acc_stmt', label: 'Account Statement', view: 'account_statement' },
       { id: 'income_stmt', label: 'Income Statement', view: 'income_statement' },
+      { id: 'collection', label: 'Collection Report', view: 'collection_report' },
     ]
   },
   {
