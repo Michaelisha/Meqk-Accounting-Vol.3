@@ -11,9 +11,22 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function OperationsDashboard() {
+  const { user, userRole, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+    if (!loading && userRole && !ROLE_ACCESS[userRole]?.includes('Operations')) {
+      router.push('/departments');
+    }
+  }, [user, userRole, loading, router]);
+
   const [stats, setStats] = useState({
     busesToday: 0,
     activeRoutes: 0,
@@ -69,6 +82,16 @@ export default function OperationsDashboard() {
     };
     fetchStats();
   }, []);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
 
   return (
     <DepartmentLayout theme="operations" title="Operations Dashboard" navigation={OPERATIONS_NAVIGATION}>
