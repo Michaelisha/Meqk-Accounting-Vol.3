@@ -1,8 +1,10 @@
 'use client';
 
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { 
   ShieldCheck, 
   Wallet, 
@@ -56,16 +58,35 @@ const departments = [
 ];
 
 export default function DepartmentSelector() {
-  const { company, loading } = useAuth();
+  const { user, userRole, loading } = useAuth();
+  const router = useRouter();
 
-  if (loading) return <div className="text-center mt-10">Loading...</div>;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
+
+  const visibleDepartments = departments.filter(dept => 
+    userRole && ROLE_ACCESS[userRole]?.includes(dept.name)
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center justify-center">
       <div className="max-w-6xl w-full">
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-black text-slate-900 mb-2 italic">
-            {company?.name || 'Meqk ERP'}
+            Meqk ERP
           </h1>
           <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
             Select Department Module
@@ -73,7 +94,7 @@ export default function DepartmentSelector() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {departments.map((dept, index) => (
+          {visibleDepartments.map((dept, index) => (
             <motion.div
               key={dept.id}
               initial={{ opacity: 0, y: 20 }}
