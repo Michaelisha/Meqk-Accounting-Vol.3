@@ -11,8 +11,22 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
 
 export default function FinanceDashboard() {
+  const { user, userRole, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+    if (!loading && userRole && !ROLE_ACCESS[userRole]?.includes('Finance')) {
+      router.push('/departments');
+    }
+  }, [user, userRole, loading, router]);
+
   const [stats, setStats] = useState({
     pendingAmount: 0,
     totalIncome: 0,
@@ -67,6 +81,16 @@ export default function FinanceDashboard() {
     };
     fetchStats();
   }, []);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
 
   return (
     <DepartmentLayout theme="finance" title="Finance Dashboard" navigation={FINANCE_NAVIGATION}>
