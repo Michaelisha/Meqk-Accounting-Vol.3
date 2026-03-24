@@ -1,31 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Lock, Mail, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLocalLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      alert(error.message);
       setError(error.message);
-      setLoading(false);
+      setLocalLoading(false);
+      return;
+    }
+
+    if (data.session) {
+      router.push('/departments');
     }
   };
 
@@ -62,7 +70,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-slate-950/50 border border-yellow-500/10 rounded-2xl py-4 pl-12 pr-4 text-yellow-100 placeholder:text-yellow-500/20 focus:outline-none focus:border-yellow-500/50 transition-all"
-                  placeholder="name@company.com"
+                  placeholder="name@meqk.com"
                   required
                 />
               </div>
@@ -91,10 +99,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={localLoading}
               className="w-full bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-slate-950 font-black py-4 rounded-2xl shadow-lg shadow-yellow-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'LOGIN TO ERP'}
+              {localLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'LOGIN TO ERP'}
             </button>
           </form>
         </div>
