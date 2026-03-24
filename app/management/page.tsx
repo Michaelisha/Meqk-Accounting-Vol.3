@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 import { 
   BarChart, 
   Bar, 
@@ -23,6 +24,18 @@ import {
 } from 'recharts';
 
 export default function ManagementDashboard() {
+  const { user, userRole, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+    if (!authLoading && userRole && !ROLE_ACCESS[userRole]?.includes('Management')) {
+      router.push('/departments');
+    }
+  }, [user, userRole, authLoading, router]);
+
   const [stats, setStats] = useState({
     totalBusesToday: 0,
     pendingAmount: 0,
@@ -35,11 +48,11 @@ export default function ManagementDashboard() {
   const [topShortages, setTopShortages] = useState<any[]>([]);
   const [topPerformingBuses, setTopPerformingBuses] = useState<any[]>([]);
   const [mostDieselUser, setMostDieselUser] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      setLoading(true);
+      setDataLoading(true);
       
       const [
         { data: metrics },
@@ -72,11 +85,21 @@ export default function ManagementDashboard() {
       setTopShortages(shortages || []);
       setTopPerformingBuses(busIncome || []);
       setMostDieselUser(dieselUsage || []);
-      setLoading(false);
+      setDataLoading(false);
     };
 
     fetchStats();
   }, []);
+
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
 
   return (
     <DepartmentLayout 
