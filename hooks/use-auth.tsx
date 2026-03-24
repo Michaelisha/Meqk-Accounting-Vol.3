@@ -3,15 +3,12 @@
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
 
 const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -20,20 +17,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const init = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
+      const sessionUser = data.session?.user || null;
+      setUser(sessionUser);
       setLoading(false);
     };
 
     init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-
-        if (session) {
-          router.push('/departments');
-        }
-
+      async (event, session) => {
+        const sessionUser = session?.user || null;
+        setUser(sessionUser);
         setLoading(false);
       }
     );
@@ -41,7 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
