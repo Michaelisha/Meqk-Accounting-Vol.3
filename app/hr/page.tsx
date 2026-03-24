@@ -9,10 +9,22 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function HRDashboard() {
-  const { company } = useAuth();
+  const { user, userRole, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+    if (!loading && userRole && !ROLE_ACCESS[userRole]?.includes('HR')) {
+      router.push('/departments');
+    }
+  }, [user, userRole, loading, router]);
+
   const [stats, setStats] = useState({
     totalStaff: 0,
     totalWages: 0,
@@ -37,6 +49,16 @@ export default function HRDashboard() {
     };
     fetchStats();
   }, []);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
 
   return (
     <DepartmentLayout theme="hr" title="HR Dashboard" navigation={HR_NAVIGATION}>
