@@ -23,44 +23,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const initialized = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
-    const fetchUserData = async (userId: string) => {
-      const { data } = await supabase
-        .from('users')
-        .select('name, roles(role)')
-        .eq('uuid', userId)
-        .single();
-      
-      if (data) {
-        setUserData(data);
-        setUserRole((data.roles as any)?.role || null);
-      }
-    };
-
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sessionUser = data.session?.user || null;
-      setUser(sessionUser);
-      if (sessionUser) {
-        await fetchUserData(sessionUser.id);
-      }
-      setLoading(false);
-    };
-
-    init();
-
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const sessionUser = session?.user || null;
-        setUser(sessionUser);
-        if (sessionUser) {
-          await fetchUserData(sessionUser.id);
-        } else {
-          setUserData(null);
-          setUserRole(null);
-        }
+      (_event, session) => {
+        setUser(session?.user || null);
         setLoading(false);
       }
     );
