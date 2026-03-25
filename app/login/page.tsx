@@ -32,9 +32,9 @@ export default function LoginPage() {
       return;
     }
 
-    if (data.session) {
-      router.push('/departments');
-    }
+    if (!data.session) return;
+
+    router.push('/departments');
   };
 
   return (
