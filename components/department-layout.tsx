@@ -44,6 +44,14 @@ const themeColors = {
   fleet: 'text-purple-600 bg-purple-50',
 };
 
+const moduleThemes = {
+  management: 'bg-[#FFF8E1]',
+  finance: 'bg-[#E3F2FD]',
+  operations: 'bg-[#E8F5E9]',
+  hr: 'bg-[#FFF3E0]',
+  fleet: 'bg-[#F3E5F5]',
+};
+
 export default function DepartmentLayout({ children, theme, title, navigation }: DepartmentLayoutProps) {
   const { user, userData, userRole } = useAuth();
   const pathname = usePathname();
@@ -154,7 +162,7 @@ export default function DepartmentLayout({ children, theme, title, navigation }:
           </div>
         </header>
 
-        <div className="p-8">
+        <div className={cn("min-h-screen p-6", moduleThemes[theme])}>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
