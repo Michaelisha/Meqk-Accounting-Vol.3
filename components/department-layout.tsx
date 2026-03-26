@@ -1,176 +1,181 @@
 'use client';
 
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/lib/supabase';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { 
-  LogOut, 
-  ChevronLeft,
-  LayoutDashboard,
-  Building2,
-  Menu,
-  X
-} from 'lucide-react';
+import { useAuth, ROLE_MAP } from '@/hooks/use-auth';
 import { motion } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { 
+  ShieldCheck, 
+  Wallet, 
+  Bus, 
+  Users, 
+  Truck,
+  ChevronRight
+} from 'lucide-react';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+const departments = [
+  {
+    id: 'management',
+    name: 'Management',
+    icon: ShieldCheck,
+    color: 'from-yellow-500 to-yellow-700',
+    description: 'Executive oversight and approvals',
+    path: '/management'
+  },
+  {
+    id: 'finance',
+    name: 'Finance',
+    icon: Wallet,
+    color: 'from-blue-400 to-blue-600',
+    description: 'Accounting, invoices and cash flow',
+    path: '/finance'
+  },
+  {
+    id: 'operations',
+    name: 'Operations',
+    icon: Bus,
+    color: 'from-green-500 to-green-700',
+    description: 'Daily bus routes and scheduling',
+    path: '/operations'
+  },
+  {
+    id: 'hr',
+    name: 'HR',
+    icon: Users,
+    color: 'from-orange-500 to-orange-700',
+    description: 'Staff management and payroll',
+    path: '/hr'
+  },
+  {
+    id: 'fleet',
+    name: 'Fleet',
+    icon: Truck,
+    color: 'from-purple-500 to-purple-700',
+    description: 'Vehicle maintenance and spares',
+    path: '/fleet'
+  }
+];
 
-interface DepartmentLayoutProps {
-  children: React.ReactNode;
-  theme: 'management' | 'finance' | 'operations' | 'hr' | 'fleet';
-  title: string;
-  navigation: { name: string; path: string; icon: any }[];
-}
+export default function DepartmentSelector() {
+  const { user, userRole, loading } = useAuth();
+  const router = useRouter();
 
-const themeStyles = {
-  management: 'bg-yellow-500 text-slate-950 border-yellow-600/20',
-  finance: 'bg-blue-500 text-white border-blue-600/20',
-  operations: 'bg-green-600 text-white border-green-700/20',
-  hr: 'bg-orange-600 text-white border-orange-700/20',
-  fleet: 'bg-purple-600 text-white border-purple-700/20',
-};
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
 
-const themeColors = {
-  management: 'text-yellow-600 bg-yellow-50',
-  finance: 'text-blue-600 bg-blue-50',
-  operations: 'text-green-600 bg-green-50',
-  hr: 'text-orange-600 bg-orange-50',
-  fleet: 'text-purple-600 bg-purple-50',
-};
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
 
-const moduleThemes = {
-  management: 'bg-[#FFF8E1]',
-  finance: 'bg-[#E3F2FD]',
-  operations: 'bg-[#E8F5E9]',
-  hr: 'bg-[#FFF3E0]',
-  fleet: 'bg-[#F3E5F5]',
-};
+  if (!user) return null;
 
-export default function DepartmentLayout({ children, theme, title, navigation }: DepartmentLayoutProps) {
-  const { user, userData, userRole } = useAuth();
-  const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const allowedModuleIds = userRole ? ROLE_MAP[userRole] || [] : [];
+  const visibleDepartments = departments.filter(dept => allowedModuleIds.includes(dept.id));
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/login';
-  };
+  // Debug logs
+  console.log("USER ROLE:", userRole);
+  console.log("VISIBLE MODULES:", visibleDepartments);
 
-  return (
-    <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar */}
-      <aside className={cn(
-        "bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen transition-all duration-300 z-50",
-        collapsed ? "w-20" : "w-72"
-      )}>
-        <div className="p-6 border-b border-slate-100">
-          <div className="flex items-center justify-between mb-6">
-            {!collapsed && (
-              <Link href="/departments" className="flex items-center gap-3 text-slate-400 hover:text-slate-900 transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-                <span className="text-xs font-black uppercase tracking-widest">Back</span>
-              </Link>
-            )}
-            <button 
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-400 hover:text-slate-900"
-            >
-              {collapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", themeColors[theme])}>
-              <LayoutDashboard className="w-6 h-6" />
-            </div>
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <h1 className="font-black text-slate-900 italic leading-tight truncate">MEQK ERP</h1>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter truncate">Accounting Vol.3</p>
-              </div>
-            )}
-          </div>
+  if (visibleDepartments.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-black text-slate-900 mb-2 italic">No Modules Found</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
+            Contact administrator for access
+          </p>
         </div>
+      </div>
+    );
+  }
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {navigation.map((item) => {
-            const isActive = pathname === item.path;
-            return (
-              <Link key={item.name} href={item.path}>
-                <div className={cn(
-                  "flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all group",
-                  isActive 
-                    ? cn(themeColors[theme], "shadow-sm")
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900",
-                  collapsed && "justify-center px-0"
-                )}>
-                  <item.icon className={cn("w-5 h-5 shrink-0", isActive ? themeColors[theme] : "text-slate-400 group-hover:text-slate-900")} />
-                  {!collapsed && <span className="text-sm truncate">{item.name}</span>}
-                </div>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-100">
-          <button 
-            onClick={handleLogout}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-red-500 hover:bg-red-50 transition-all",
-              collapsed && "justify-center px-0"
-            )}
-          >
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!collapsed && <span className="text-sm">Logout</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
-          <div className="flex items-center gap-4">
-            <div className={`p-2 rounded-lg ${themeStyles[theme]} shadow-sm`}>
-              {navigation[0] && (() => {
-                const Icon = navigation[0].icon;
-                return <Icon className="w-5 h-5" />;
-              })()}
-            </div>
-            <div>
-              <h2 className="font-bold text-slate-900">{title}</h2>
-              <div className="flex items-center gap-2 text-slate-400 text-[10px] uppercase tracking-widest font-bold">
-                <Building2 className="w-3 h-3" />
-                Meqk ERP
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <h3 className="text-xs font-bold text-slate-900 italic">{userData?.name || 'User'}</h3>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest">{userRole || 'Active Session'}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 font-bold uppercase">
-              {userData?.name?.charAt(0) || 'U'}
-            </div>
-          </div>
-        </header>
-
-        <div className={cn("min-h-screen p-6", moduleThemes[theme])}>
+  if (visibleDepartments.length === 1) {
+    const dept = visibleDepartments[0];
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 p-8">
+        <div className="max-w-md w-full">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
           >
-            {children}
+            <Link href={dept.path}>
+              <div className="group bg-white p-12 rounded-[3rem] border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex flex-col items-center text-center relative overflow-hidden">
+                <div className={`absolute top-0 left-0 w-full h-2 bg-gradient-to-r ${dept.color}`} />
+                
+                <div className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${dept.color} flex items-center justify-center text-white mb-8 shadow-xl group-hover:scale-110 transition-transform`}>
+                  <dept.icon className="w-12 h-12" />
+                </div>
+
+                <h3 className="text-3xl font-black text-slate-900 mb-4 italic">
+                  {dept.name}
+                </h3>
+                <p className="text-slate-500 text-lg font-medium leading-relaxed">
+                  {dept.description}
+                </p>
+
+                <div className="mt-10 flex items-center gap-3 text-slate-400 group-hover:text-slate-900 transition-colors font-black text-sm uppercase tracking-widest">
+                  Enter Module <ChevronRight className="w-5 h-5" />
+                </div>
+              </div>
+            </Link>
           </motion.div>
         </div>
-      </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center justify-center">
+      <div className="max-w-6xl w-full">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-black text-slate-900 mb-2 italic">
+            Meqk ERP
+          </h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
+            Select Department Module
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {visibleDepartments.map((dept, index) => (
+            <motion.div
+              key={dept.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Link href={dept.path}>
+                <div className="group bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:border-transparent transition-all h-full flex flex-col items-center text-center relative overflow-hidden">
+                  <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${dept.color}`} />
+                  
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${dept.color} flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                    <dept.icon className="w-8 h-8" />
+                  </div>
+
+                  <h3 className="text-xl font-black text-slate-900 mb-2 italic">
+                    {dept.name}
+                  </h3>
+                  <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                    {dept.description}
+                  </p>
+
+                  <div className="mt-8 flex items-center gap-2 text-slate-400 group-hover:text-slate-900 transition-colors font-black text-xs uppercase tracking-widest">
+                    Enter Module <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
