@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useAuth, ROLE_MAP } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { 
   BarChart, 
@@ -31,7 +31,7 @@ export default function ManagementDashboard() {
     if (!authLoading && !user) {
       router.push('/');
     }
-    if (!authLoading && userRole && !ROLE_ACCESS[userRole]?.includes('Management')) {
+    if (!authLoading && userRole && !ROLE_MAP[userRole]?.includes('management')) {
       router.push('/departments');
     }
   }, [user, userRole, authLoading, router]);
@@ -139,30 +139,30 @@ export default function ManagementDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white/70 p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div className="p-3 rounded-2xl bg-orange-50 text-orange-600">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Total Staff</p>
+            <p className="text-slate-600 text-xs font-black uppercase tracking-widest">Total Staff</p>
             <h4 className="text-xl font-black text-slate-900">{stats.totalStaff}</h4>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white/70 p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div className="p-3 rounded-2xl bg-blue-50 text-blue-600">
             <Bus className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Total Buses</p>
+            <p className="text-slate-600 text-xs font-black uppercase tracking-widest">Total Buses</p>
             <h4 className="text-xl font-black text-slate-900">{stats.totalBuses}</h4>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white/70 p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div className="p-3 rounded-2xl bg-purple-50 text-purple-600">
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Number of Spares</p>
+            <p className="text-slate-600 text-xs font-black uppercase tracking-widest">Number of Spares</p>
             <h4 className="text-xl font-black text-slate-900">{stats.numberOfSpares}</h4>
           </div>
         </div>
@@ -170,14 +170,14 @@ export default function ManagementDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Top Shortages */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-red-500" />
             Top Shortages
           </h3>
           <div className="space-y-4">
             {topShortages.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div key={i} className="flex items-center justify-between p-4 bg-white/40 rounded-2xl border border-slate-100">
                 <p className="font-bold text-slate-900">{item.staff}</p>
                 <p className="text-red-600 font-black italic">TZS {item.shortage.toLocaleString()}</p>
               </div>
@@ -186,14 +186,14 @@ export default function ManagementDashboard() {
         </div>
 
         {/* Top Performing Buses */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-green-500" />
             Top Performing Buses
           </h3>
           <div className="space-y-4">
             {topPerformingBuses.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div key={i} className="flex items-center justify-between p-4 bg-white/40 rounded-2xl border border-slate-100">
                 <p className="font-bold text-slate-900">{item.bus}</p>
                 <p className="text-green-600 font-black italic">TZS {item.total_income.toLocaleString()}</p>
               </div>
@@ -202,14 +202,14 @@ export default function ManagementDashboard() {
         </div>
 
         {/* Most Diesel User */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-lg font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <Bus className="w-5 h-5 text-blue-500" />
             Most Diesel User
           </h3>
           <div className="space-y-4">
             {mostDieselUser.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div key={i} className="flex items-center justify-between p-4 bg-white/40 rounded-2xl border border-slate-100">
                 <p className="font-bold text-slate-900">{item.bus}</p>
                 <p className="text-blue-600 font-black italic">{item.total_diesel_used.toLocaleString()} L</p>
               </div>
@@ -223,13 +223,13 @@ export default function ManagementDashboard() {
 
 function StatCard({ title, value, icon: Icon, color, bg }: any) {
   return (
-    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
+    <div className="bg-white/70 p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
         <div className={`p-3 rounded-2xl ${bg} ${color}`}>
           <Icon className="w-6 h-6" />
         </div>
       </div>
-      <p className="text-slate-500 text-sm font-medium">{title}</p>
+      <p className="text-slate-600 text-sm font-medium">{title}</p>
       <h4 className="text-2xl font-bold text-slate-900 mt-1">{value}</h4>
     </div>
   );
