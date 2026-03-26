@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useAuth, ROLE_MAP } from '@/hooks/use-auth';
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,8 +21,7 @@ const departments = [
     icon: ShieldCheck,
     color: 'from-yellow-500 to-yellow-700',
     description: 'Executive oversight and approvals',
-    path: '/management',
-    roles: ['Admin', 'Manager']
+    path: '/management'
   },
   {
     id: 'finance',
@@ -30,8 +29,7 @@ const departments = [
     icon: Wallet,
     color: 'from-blue-400 to-blue-600',
     description: 'Accounting, invoices and cash flow',
-    path: '/finance',
-    roles: ['Accountant']
+    path: '/finance'
   },
   {
     id: 'operations',
@@ -39,8 +37,7 @@ const departments = [
     icon: Bus,
     color: 'from-green-500 to-green-700',
     description: 'Daily bus routes and scheduling',
-    path: '/operations',
-    roles: ['Operation Officer']
+    path: '/operations'
   },
   {
     id: 'hr',
@@ -48,8 +45,7 @@ const departments = [
     icon: Users,
     color: 'from-orange-500 to-orange-700',
     description: 'Staff management and payroll',
-    path: '/hr',
-    roles: ['HR Officer']
+    path: '/hr'
   },
   {
     id: 'fleet',
@@ -57,13 +53,12 @@ const departments = [
     icon: Truck,
     color: 'from-purple-500 to-purple-700',
     description: 'Vehicle maintenance and spares',
-    path: '/fleet',
-    roles: ['Fleet Officer']
+    path: '/fleet'
   }
 ];
 
 export default function DepartmentSelector() {
-  const { user, loading } = useAuth();
+  const { user, userRole, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -82,23 +77,28 @@ export default function DepartmentSelector() {
 
   if (!user) return null;
 
-  // Handle role safely
-  const userRole = (user as any)?.role;
-  
+  const allowedModuleIds = userRole ? ROLE_MAP[userRole] || [] : [];
+  const visibleDepartments = departments.filter(dept => allowedModuleIds.includes(dept.id));
+
   // Debug logs
   console.log("USER ROLE:", userRole);
+  console.log("VISIBLE MODULES:", visibleDepartments);
 
-  const visibleModules = userRole
-    ? departments.filter(dept => dept.roles.includes(userRole))
-    : departments; // fallback: show all if role missing
+  if (visibleDepartments.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-black text-slate-900 mb-2 italic">No Modules Found</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">
+            Contact administrator for access
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  // Handle empty result
-  const finalModules = visibleModules.length > 0 ? visibleModules : departments;
-  
-  console.log("VISIBLE MODULES:", finalModules);
-
-  if (finalModules.length === 1) {
-    const dept = finalModules[0];
+  if (visibleDepartments.length === 1) {
+    const dept = visibleDepartments[0];
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50 p-8">
         <div className="max-w-md w-full">
@@ -144,8 +144,8 @@ export default function DepartmentSelector() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {finalModules.map((dept, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {visibleDepartments.map((dept, index) => (
             <motion.div
               key={dept.id}
               initial={{ opacity: 0, y: 20 }}
