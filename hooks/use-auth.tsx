@@ -6,13 +6,13 @@ import { User } from '@supabase/supabase-js';
 
 const AuthContext = createContext<any>(null);
 
-export const ROLE_ACCESS: Record<string, string[]> = {
-  Admin: ['Management', 'Finance', 'Operations', 'HR', 'Fleet'],
-  Manager: ['Management'],
-  Accountant: ['Finance'],
-  'Operation Officer': ['Operations'],
-  'HR Officer': ['HR'],
-  'Fleet Officer': ['Fleet'],
+export const ROLE_MAP: Record<string, string[]> = {
+  Admin: ['management', 'finance', 'operations', 'hr', 'fleet'],
+  Manager: ['management'],
+  Accountant: ['finance'],
+  'Operation Officer': ['operations'],
+  'HR Officer': ['hr'],
+  'Fleet Officer': ['fleet'],
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -24,8 +24,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
+      async (_event, session) => {
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+          try {
+            const { data: userData, error } = await supabase
+              .from('users')
+              .select('name, roles(role)')
+              .eq('uuid', currentUser.id)
+              .single();
+            
+            if (userData) {
+              const data = userData as any;
+              setUserData(data);
+              // roles(role) select returns an array or object depending on relationship
+              const role = Array.isArray(data.roles) 
+                ? data.roles[0]?.role 
+                : data.roles?.role;
+              setUserRole(role || null);
+            }
+          } catch (err) {
+            console.error('Error fetching user data:', err);
+          }
+        } else {
+          setUserData(null);
+          setUserRole(null);
+        }
+        
         setLoading(false);
       }
     );
