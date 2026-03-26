@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth, ROLE_ACCESS } from '@/hooks/use-auth';
+import { useAuth, ROLE_MAP } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
 export default function FleetDashboard() {
@@ -22,7 +22,7 @@ export default function FleetDashboard() {
     if (!loading && !user) {
       router.push('/');
     }
-    if (!loading && userRole && !ROLE_ACCESS[userRole]?.includes('Fleet')) {
+    if (!loading && userRole && !ROLE_MAP[userRole]?.includes('fleet')) {
       router.push('/departments');
     }
   }, [user, userRole, loading, router]);
