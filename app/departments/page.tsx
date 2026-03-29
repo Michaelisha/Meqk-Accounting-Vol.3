@@ -20,7 +20,7 @@ const departments = [
     name: 'Management',
     icon: ShieldCheck,
     color: 'from-yellow-500 to-yellow-700',
-    description: 'Executive oversight and approvals',
+    description: 'Executive oversight and strategic planning',
     path: '/management'
   },
   {
