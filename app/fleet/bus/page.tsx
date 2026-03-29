@@ -9,11 +9,21 @@ import {
   Users,
   Calendar
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function AddBusPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     reg: '',
@@ -48,10 +58,20 @@ export default function AddBusPage() {
     }
   };
 
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
+
   return (
     <DepartmentLayout theme="fleet" title="Add New Bus" navigation={FLEET_NAVIGATION}>
       <div className="max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit} className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm space-y-8">
+        <form onSubmit={handleSubmit} className="bg-white/70 p-10 rounded-[3rem] border border-slate-200 shadow-sm space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-4 flex items-center gap-2">
