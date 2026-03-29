@@ -103,7 +103,7 @@ export default function OperationsDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-xl font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <Bus className="w-6 h-6 text-green-500" /> Top 3 Buses (Passengers)
           </h3>
@@ -119,7 +119,7 @@ export default function OperationsDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
           <h3 className="text-xl font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-emerald-500" /> Top 3 Bus Utilization
           </h3>
@@ -135,7 +135,7 @@ export default function OperationsDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm lg:col-span-2">
+        <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm lg:col-span-2">
           <h3 className="text-xl font-black text-slate-900 mb-6 italic flex items-center gap-2">
             <Clock className="w-6 h-6 text-orange-500" /> Nearest Office Rent Expiry
           </h3>
@@ -159,7 +159,7 @@ export default function OperationsDashboard() {
 
 function StatCard({ title, value, icon: Icon, color, bg }: any) {
   return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+    <div className="bg-white/70 p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
       <div className={`w-12 h-12 rounded-2xl ${bg} ${color} flex items-center justify-center mb-4`}>
         <Icon className="w-6 h-6" />
       </div>
