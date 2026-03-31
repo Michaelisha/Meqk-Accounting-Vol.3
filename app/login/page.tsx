@@ -20,18 +20,12 @@ export default function LoginPage() {
     setLocalLoading(true);
     setError('');
 
-    // Safety timeout to prevent stuck loading state
-    const timeout = setTimeout(() => {
-      setLocalLoading(false);
-    }, 5000);
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      clearTimeout(timeout);
       alert(error.message);
       setError(error.message);
       setLocalLoading(false);
@@ -39,7 +33,6 @@ export default function LoginPage() {
     }
 
     if (!data.session) {
-      clearTimeout(timeout);
       setLocalLoading(false);
       return;
     }
