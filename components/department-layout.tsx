@@ -52,6 +52,14 @@ const moduleThemes = {
   fleet: 'bg-[#F3E5F5]',
 };
 
+const sidebarThemes = {
+  management: 'bg-[#FBC02D]',
+  finance: 'bg-[#1E88E5]',
+  operations: 'bg-[#43A047]',
+  hr: 'bg-[#FB8C00]',
+  fleet: 'bg-[#8E24AA]',
+};
+
 export default function DepartmentLayout({ children, theme, title, navigation }: DepartmentLayoutProps) {
   const { user, userData, userRole } = useAuth();
   const pathname = usePathname();
@@ -66,21 +74,21 @@ export default function DepartmentLayout({ children, theme, title, navigation }:
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
       <aside className={cn(
-        "border-r border-slate-200 flex flex-col sticky top-0 h-screen transition-all duration-300 z-50 shadow-lg",
-        moduleThemes[theme],
+        "border-r border-slate-200 flex flex-col sticky top-0 h-screen transition-all duration-300 z-50 shadow-lg text-white",
+        sidebarThemes[theme],
         collapsed ? "w-20" : "w-72"
       )}>
         <div className="p-6 border-b border-slate-900/10">
           <div className="flex items-center justify-between mb-6">
             {!collapsed && (
-              <Link href="/departments" className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
+              <Link href="/departments" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors">
                 <ChevronLeft className="w-4 h-4" />
                 <span className="text-xs font-black uppercase tracking-widest">Back</span>
               </Link>
             )}
             <button 
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 hover:bg-black/5 rounded-xl transition-colors text-slate-600 hover:text-slate-900"
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors text-white/70 hover:text-white"
             >
               {collapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
             </button>
@@ -92,8 +100,8 @@ export default function DepartmentLayout({ children, theme, title, navigation }:
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
-                <h1 className="font-black text-slate-900 italic leading-tight truncate">MEQK ERP</h1>
-                <p className="text-[10px] text-slate-600 uppercase font-bold tracking-tighter truncate">Accounting Vol.3</p>
+                <h1 className="font-black text-white italic leading-tight truncate">MEQK ERP</h1>
+                <p className="text-[10px] text-white/70 uppercase font-bold tracking-tighter truncate">Accounting Vol.3</p>
               </div>
             )}
           </div>
@@ -107,11 +115,11 @@ export default function DepartmentLayout({ children, theme, title, navigation }:
                 <div className={cn(
                   "flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all group",
                   isActive 
-                    ? "bg-white/40 text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:bg-white/20 hover:text-slate-900",
+                    ? "bg-white/20 text-white shadow-sm"
+                    : "text-white/70 hover:bg-white/10 hover:text-white",
                   collapsed && "justify-center px-0"
                 )}>
-                  <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-slate-900" : "text-slate-500 group-hover:text-slate-900")} />
+                  <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50 group-hover:text-white")} />
                   {!collapsed && <span className="text-sm truncate">{item.name}</span>}
                 </div>
               </Link>
@@ -119,11 +127,11 @@ export default function DepartmentLayout({ children, theme, title, navigation }:
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-900/10">
+        <div className="p-4 border-t border-white/10">
           <button 
             onClick={handleLogout}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-red-600 hover:bg-red-50/50 transition-all",
+              "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold text-white hover:bg-white/10 transition-all",
               collapsed && "justify-center px-0"
             )}
           >
