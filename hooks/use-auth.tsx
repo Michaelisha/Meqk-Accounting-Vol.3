@@ -20,44 +20,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userData, setUserData] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const initialized = useRef(false);
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user || null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-          try {
-            const { data: userData, error } = await supabase
-              .from('users')
-              .select('name, roles(role)')
-              .eq('uuid', currentUser.id)
-              .single();
-            
-            if (userData) {
-              const data = userData as any;
-              setUserData(data);
-              // roles(role) select returns an array or object depending on relationship
-              const role = Array.isArray(data.roles) 
-                ? data.roles[0]?.role 
-                : data.roles?.role;
-              setUserRole(role || null);
-            }
-          } catch (err) {
-            console.error('Error fetching user data:', err);
-          }
-        } else {
+    let mounted = true;
+
+    async function fetchUserData(currentUser: User | null) {
+      if (!currentUser) {
+        if (mounted) {
           setUserData(null);
           setUserRole(null);
         }
+        return;
+      }
+
+      try {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('name, roles(role)')
+          .eq('uuid', currentUser.id)
+          .single();
         
-        setLoading(false);
+        if (mounted && userData) {
+          const data = userData as any;
+          setUserData(data);
+          const role = Array.isArray(data.roles) 
+            ? data.roles[0]?.role 
+            : data.roles?.role;
+          setUserRole(role || null);
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    }
+
+    // GET SESSION ONCE
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        const currentUser = data.session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          fetchUserData(currentUser).finally(() => {
+            if (mounted) setLoading(false);
+          });
+        } else {
+          setLoading(false);
+        }
+      }
+    });
+
+    // SINGLE LISTENER
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (mounted) {
+          const currentUser = session?.user ?? null;
+          setUser(currentUser);
+          fetchUserData(currentUser);
+        }
       }
     );
 
     return () => {
+      mounted = false;
       listener.subscription.unsubscribe();
     };
   }, []);
