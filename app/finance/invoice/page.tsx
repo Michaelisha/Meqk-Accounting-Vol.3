@@ -85,15 +85,26 @@ export default function AddInvoicePage() {
         const routes = routesRes.data || [];
         const invoiceTypes = invoiceTypesRes.data || [];
 
+        const cleanValue = (val: any) => {
+          if (val === undefined || val === null || val === '') return null;
+          return val;
+        };
+
+        const parseAmount = (val: any) => {
+          if (val === undefined || val === null || val === '') return 0;
+          const num = Number(val);
+          return isNaN(num) ? 0 : num;
+        };
+
         let mappedData = [];
         try {
           mappedData = excelRows.map((row: any) => ({
-            date: excelDateToJSDate(row.date),
-            invoice_type: invoiceTypes.find(i => i.invoice_type === row.invoice_type)?.uuid || null,
-            staff: staffs.find(s => s.name === row.staff)?.uuid || null,
-            bus: buses.find(b => b.reg === row.bus)?.uuid || null,
-            route: routes.find(r => r.route === row.route)?.uuid || null,
-            amount: Number(row.amount || 0),
+            date: cleanValue(excelDateToJSDate(row.date || row.Date)),
+            invoice_type: cleanValue(invoiceTypes.find(i => i.invoice_type === (row.invoice_type || row.Invoice_Type || row.type))?.uuid),
+            staff: cleanValue(staffs.find(s => s.name === (row.staff || row.Staff || row.staff_name))?.uuid),
+            bus: cleanValue(buses.find(b => b.reg === (row.bus || row.Bus || row.bus_reg))?.uuid),
+            route: cleanValue(routes.find(r => r.route === (row.route || row.Route))?.uuid),
+            amount: parseAmount(row.amount || row.Amount || row.total),
           }));
         } catch (err) {
           console.error("Mapping error:", err);
@@ -103,23 +114,20 @@ export default function AddInvoicePage() {
 
         console.log("MAPPED:", mappedData);
 
-        const cleanData = mappedData.filter((row: any) =>
+        const validData = mappedData.filter((row: any) =>
           row.date &&
           row.invoice_type &&
-          row.staff &&
-          row.bus &&
-          row.route &&
-          row.amount > 0
+          row.staff
         );
 
-        console.log("CLEAN:", cleanData);
+        console.log("VALID:", validData);
 
-        if (cleanData.length === 0) {
-          alert("No valid data found. Check Excel names and format.");
+        if (validData.length === 0) {
+          alert("No valid rows: Check required fields (date, invoice_type, staff)");
           return;
         }
 
-        const { error } = await supabase.from("invoice_entry").insert(cleanData);
+        const { error } = await supabase.from("invoice_entry").insert(validData);
 
         if (error) {
           console.error(error);
