@@ -6,6 +6,8 @@ import GenericReports from '@/components/generic-reports';
 import { MANAGEMENT_NAVIGATION } from '@/constants/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 const MODULES = [
   {
@@ -19,6 +21,7 @@ const MODULES = [
       { id: 'acc_stmt', label: 'Account Statement', view: 'account_statement' },
       { id: 'income_stmt', label: 'Income Statement', view: 'income_statement' },
       { id: 'collection', label: 'Collection Report', view: 'collection_report' },
+      { id: 'cargo', label: 'Cargo Report', view: 'cargo_report' },
     ]
   },
   {
@@ -51,7 +54,26 @@ const MODULES = [
 ];
 
 export default function ManagementReports() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
   const [activeReport, setActiveReport] = useState(MODULES[0].reports[0]);
+
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-slate-500 font-bold uppercase tracking-widest animate-pulse">
+        Loading...
+      </div>
+    </div>
+  );
+
+  if (!user) return null;
 
   return (
     <DepartmentLayout theme="management" title="Management Reports" navigation={MANAGEMENT_NAVIGATION}>
