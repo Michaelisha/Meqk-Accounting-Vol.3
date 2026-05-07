@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const maintenanceMode = true
+  const maintenanceMode = false
 
   if (maintenanceMode) {
     return NextResponse.redirect(
